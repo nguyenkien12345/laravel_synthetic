@@ -1,0 +1,21 @@
+composer install sunra/php-simple-html-dom-parser
+composer require guzzlehttp/guzzle
+composer require weidner/goutte
+---------------------------------------------------------
+Làm việc với queue
+- php artisan queue:table
+- php artisan migrate
+
+- Câu lệnh tạo file queue: php artisan make:job SalesCsvProcess
+
+- Câu lệnh run: php artisan queue:work
+
+- Job batching: Nó sẽ cho phép bạn gửi nhiều Job vào hàng đợi cùng một lúc (trong một “batch”) để được xử lý đồng thời
+(giả sử bạn có đủ queue worker đợi đang chạy) và đăng ký các callback để kích hoạt khi tất cả các Job đã hoàn thành
+Có 3 callback có sẵn, đó là:
+then() - sẽ kích hoạt khi tất cả các Job trong batch đã hoàn thành và thành công.
+catch() - sẽ kích hoạt khi có lỗi xảy ra trong batch.
+finally() - sẽ kích hoạt khi tất cả các Job trong batch đã hoàn thành thực thi (một số có thể đã thành công, một số có thể không)
+- php artisan queue:batches-table
+- php artisan migrate
+

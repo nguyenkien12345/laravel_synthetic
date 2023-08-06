@@ -1,0 +1,97 @@
+- Bước 1: Vào dự án github
+
+- Bước 2: Vào (Thanh menu) Settings -> (Sidebar) Actions -> General -> Trong mục Actions permissions -> Tick chọn Allow all actions and reusable workflows
+
+- Bước 3: Vào Visual Studio Code -> Mở dự án lên -> Để tạo 1 github actions (hay còn gọi là workflow), đứng ngay tại folder root tạo cấu trúc folder như sau: 
+.github/workflows/hello-world.yaml. Mỗi 1 cái workflow phải chứa 1 file yaml
+Trong file yaml của workflow sẽ có 3 thành phần chính là name, on, jobs
+- name: Tên của workflow (Đặt tên có ý nghĩa)
+- on: Chạy khi nào, khi nào chạy
+- jobs: Danh sách các cái job sẽ chạy trong workflow
+
+
+VD: 
+name: hello world
+on:
+  push:
+    paths:
+      - '!note.txt'
+      - '!README.md'
+      - '!.vscode/**'
+      - '!.editorconfig'
+      - 'src/**'
+      - '.github/**'
+      - 'package.json'
+    branches:
+      - 'master'
+      - 'release/**'
+      - 'staging/**'
+      - '!develop/**'
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+  workflow_dispatch:
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mheap/github-action-required-labels@v1
+        with:
+          mode: exactly
+          count: 0
+          labels: "don't run build"
+      - run: echo "TODAY='02/08/2023'" >> $GITHUB_ENV
+      - run: echo Hello world, today is $TODAY
+
+Giải thích: 
+  push:
+    paths:
+      - '!note.txt'
+      - '!README.md'
+      - '!.vscode/**'
+      - '!.editorconfig'
+      - 'src/**'
+      - '.github/**'
+      - 'package.json'
+    branches:
+      - 'master'
+      - 'release/**'
+      - 'staging/**'
+      - '!develop/**'
+- Khi ta thay đổi nội dung trong các file như note.txt, README.md, editorconfig và tất cả các folder/file nằm trong folder vscode thì sẽ không tạo ra một workflow khi push code lên
+- Khi ta thay đổi nội dung trong các folder/file nằm trong folder src,.github, file package.json thì sẽ tạo ra 1 workflow khi push code lên
+- Mình muốn chạy cái workflow này khi ai đó đẩy code vào nhánh master hoặc tất cả các nhánh con của nhánh release, staging, ngoại trừ (không áp dụng) tất cả các nhánh con của nhánh develop
+
+  workflow_dispatch: Chỉ định chạy workflow thủ công chứ không dùng auto deploy
+
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+- opened: Khi một pull request được mở (opened), tức là một người dùng đã tạo một yêu cầu để thay đổi mã nguồn, workflow sẽ được kích hoạt.
+- reopened: Khi một pull request đã bị đóng trước đó và sau đó được mở lại (reopened), workflow cũng sẽ được kích hoạt.
+- synchronize: Khi có các thay đổi mới được đẩy lên pull request, như là việc cập nhật nhánh gốc (base branch) hoặc các commit mới, workflow sẽ được kích hoạt để xử lý những thay đổi này.
+- labeled: Khi một nhãn (label) mới được thêm vào pull request, workflow sẽ được kích hoạt.
+- unlabeled: Khi một nhãn đã được gắn vào pull request và sau đó bị gỡ bỏ (unlabeled), workflow cũng sẽ được kích hoạt.
+
+- uses: mheap/github-action-required-labels@v1
+  with:
+    mode: exactly
+    count: 0
+    labels: "don't run build"
+Nếu trong pull request có chứa label don't run build thì không thực thi workflow. workflow của pull request chỉ thực thi khi không chứa label don't run build
+
+jobs: có thể chứa nhiều cái job khác nhau. Mỗi cái job sẽ bắt đầu bằng 1 cái job id
+say-hello:
+  runs-on: ubuntu-latest
+  steps:
+    - run: echo "TODAY='02/08/2023'" >> $GITHUB_ENV
+    - run: echo Hello world, today is $TODAY
+
+- say-hello: Chính là job id
+- runs-on: Chạy trên nền tảng nào
+- steps: Chạy những cái bước nào
+- TODAY='02/08/2023': Gán giá trị '02/08/2023' vào biến TODAY. Muốn truyền giá trị của cái biến TODAY giữa các cái step trong 1 cái job thì ta dùng >> $GITHUB_ENV 
+
+- Bước 4: Quay lại trang github -> Vào (Thanh menu) -> Actions -> (Sidebar) Chỗ All workflows -> Check cái workflow của mình
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Để vào Marketplace trong github ta vào như sau: 
+https://github.com/marketplace?category=&query=&type=actions&verification=
