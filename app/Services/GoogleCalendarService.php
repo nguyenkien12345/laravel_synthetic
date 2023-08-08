@@ -32,6 +32,11 @@ class GoogleCalendarService
             return $data;
     }
 
+    public function getDetailEvent($id){
+        $result = Event::findOrFail($id);
+        return $result;
+    }
+
     public function addEvent($data){
         $result = Event::create($data);
         return $result;

@@ -21,6 +21,10 @@
         <env name="APP_ENV" value="testing"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>
+        <!--
+            Khi muốn chạy các unit test với database test riêng biệt thì chúng ta sẽ setup 2 dòng này
+            Nó sẽ tạo ra 1 database sqlite tạm thời trong bộ nhớ
+        -->
         <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
         <!-- <env name="DB_DATABASE" value=":memory:"/> -->
         <env name="MAIL_MAILER" value="array"/>
