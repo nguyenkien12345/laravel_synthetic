@@ -13,10 +13,45 @@ use App\Http\Controllers\UploadMillionRecordController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\AutoCompleteSearchController;
 use App\Http\Controllers\GoogleCalendarController;
+use App\Http\Controllers\DependentDropdownController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    // use these methods instead of using loops
+
+    $numbers = [1,2,3,4,5,6,7,8,9,10];
+
+    // array_sum: Tính tổng của toàn bộ các phần tử trong mảng numbers
+    // $result = array_sum($numbers);
+
+    // array_product: Tính tích của toàn bộ các phần tử trong mảng numbers
+    // $result = array_product($numbers);
+
+    // array_count_values: Đếm số lần xuất hiện của mỗi phần tử trong mảng
+    // (vd: số 1 xuất hiện 1 lần, số 2 xuất hiện 2 lần, ...)
+    // $result = array_count_values($numbers);
+
+    $peoples = [
+        ['name' => 'Nguyễn Trung Kiên', 'gender' => 1, 'age' => 23],
+        ['name' => 'Mai Thị Thanh Thúy', 'gender' => 0, 'age' => 23],
+        ['name' => 'Phạm Trần Hà Mi', 'gender' => 0, 'age' => 23],
+        ['name' => 'Nguyễn Đức Công Khoa', 'gender' => 1, 'age' => 23],
+    ];
+
+    // array_column: Chỉ lấy toàn bộ giá trị của cột được chỉ định => Giống như pluck vậy
+    // $result = array_column($peoples, 'age');
+
+    // array_filter: Để sử dụng được chỉ mục index trong array_filter ta bắt buộc phải sử dụng tham số thứ 3 là ARRAY_FILTER_USE_BOTH
+    $result = [];
+    array_filter($peoples, function($people, $index) use (&$result){
+        // Nó giống như dd nhưng hiện đại hơn
+        dump($index);
+        if($people['gender'] == 0) {
+            $result[] = $people;
+        }
+    }, ARRAY_FILTER_USE_BOTH);
+
+    return $result;
 });
 
 // Start dự án Polling
@@ -132,3 +167,11 @@ Route::prefix('google-calendar')->group(function(){
     Route::delete('delete-booking/{id}', [GoogleCalendarController::class, 'deleteBooking'])->name('google-calendar.delete-booking');
 });
 // End dự án Google Calendar
+
+// Start dự án Fetch Country, State, and City Data and Create Dependent Dropdown
+Route::prefix('dependent-dropdown')->group(function(){
+    Route::get('/countries', [DependentDropdownController::class, 'getCountries'])->name('dependent-dropdown.countries');
+    Route::get('/states', [DependentDropdownController::class, 'getStates'])->name('dependent-dropdown.states');
+    Route::get('/cities', [DependentDropdownController::class, 'getCities'])->name('dependent-dropdown.cities');
+});
+// End dự án Fetch Country, State, and City Data and Create Dependent Dropdown
