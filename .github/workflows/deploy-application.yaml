@@ -56,4 +56,22 @@ jobs:
       # --exclude=tests: Loại bỏ thư mục tests (hoặc các tệp có tên là tests).
       # *: Cuối cùng, dấu * được sử dụng để chỉ định rằng tất cả các tệp và thư mục trong thư mục hiện tại (ngoại trừ những gì đã được loại bỏ) sẽ được bao gồm trong tệp nén app.tar.gz.
       # run: là một biểu thức shell, chứa các lệnh mà bạn muốn thực hiện trên máy chủ nơi công việc đang chạy
-      run: tar -czf app.tar.gz --exclude=*.git --exclude=node_modules --exclude=tests *
+      # env: chứa các biến môi trường (environment variables)
+      # GITHUB_SHA: Tạo biến môi trường GITHUB_SHA. Biến này chứa mã SHA của commit hiện tại trong kho lưu trữ GitHub. Mã SHA là một chuỗi ký tự duy nhất xác định một commit nhất định.
+      env:
+        GITHUB_SHA: ${{ github.sha }}
+      run: tar -czf "${GITHUB_SHA}".tar.gz --exclude=*.git --exclude=node_modules --exclude=tests *
+
+    # Tên này sẽ được hiển thị trong bảng điều khiển GitHub Actions. (Mô tả step này có nhiệm vụ gì)
+    # Mỗi khi workflows này chạy thành công nó sẽ tạo ra 1 Artifacts trong mục Actions (Trên thanh menu của Github => Tab Actions)
+    - name: Store artifact for distribution
+      # Hành động này là một hành động GitHub Actions. Nhiệm vụ của nó là tải lên một artifact lên GitHub để lưu trữ.
+      uses: actions/upload-artifact@v3
+      # Chứa các đối số (arguments) được truyền cho hành động
+      with:
+        # name: app-build => Đây là tên của artifact, nó là tên mà bạn muốn đặt cho đối tượng lưu trữ
+        # path: ${{ github.sha }}.tar.gz
+        # Đây là đường dẫn đến tệp artifact mà bạn muốn tải lên. Đường dẫn này được xác định bằng cách sử dụng biến github.sha,
+        # đó là giá trị mã hash (checksum) của commit cuối cùng trong kho lưu trữ GitHub của bạn, và thêm phần mở rộng tệp
+        name: app-build
+        path: ${{ github.sha }}.tar.gz
