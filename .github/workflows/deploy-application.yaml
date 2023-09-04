@@ -21,13 +21,13 @@ jobs:
         npm run prod
 
     # Tên này sẽ được hiển thị trong bảng điều khiển GitHub Actions. (Mô tả step này có nhiệm vụ gì)
-    - name: Configure PHP 8.0
+    - name: Configure PHP 8.1
       # Hành động này là một hành động GitHub Actions do shivammathur tạo ra. Cài đặt và cấu hình một phiên bản PHP cụ thể trên nhiều nền tảng
       uses: shivammathur/setup-php@master
       # Chứa các đối số (arguments) được truyền cho hành động
       with:
-        # Môi trường PHP sẽ được thiết lập với phiên bản 8.0.
-        php-version: 8.0
+        # Môi trường PHP sẽ được thiết lập với phiên bản 8.1.
+        php-version: 8.1
         # Danh sách các phần mở rộng PHP mà bạn muốn cài đặt (Các phần mở rộng này là các tính năng bổ sung của PHP)
         extensions: mbstring, ctype, fileinfo, openssl, PDO, bcmath, json, tokenizer, xml
 
