@@ -1,0 +1,15 @@
+Các thông tin được cấu hình trong Digital Oceans sẽ được sử dụng trong file deployment-config.json
+
+B1) Vào https://www.digitalocean.com/ => Log in
+B2) Tạo 1 Project => Sau đó click chọn Project đó => Bấm Create => Bấm Droplets
+B3) Trong mục Choose Region => Chọn Singapore
+B4) Trong mục Choose an image => Nhấn vào tab Marketplace => Nhập vào ô tìm kiếm chữ LEMP => Sau đó click chọn kết quả hiển thị ra tương ứng
+B5) Trong mục Choose Size => Mục Droplet Type => Chọn Basic (Plan selected) => Mục CPU options => Chọn Regular Disk type: SSD
+B6) Bấm Create Droplet
+
+Mở Terminal (Linux/Ubunut) (Trên máy tính local của chúng ta):
+1) ssh đến máy chủ server mà ta đã tạo trên Digital Oceans
+vd: 123.123.123.62
+2) Gõ: vi /etc/nginx/sites-available/digitalocean
+Thay đổi root /var/www/html; thành  root /var/www/html/current/public; (current chính là commit của dự án laravel, public chứ source code html, css, js)
+3) Gõ: service nginx restart => service nginx status => nginx -t

@@ -5,9 +5,16 @@ on:
     branches: [ master ]
 
 jobs:
+  # Công việc đầu tiên
   create-deployment-artifacts:
     name: Create deployment artifacts
     runs-on: ubuntu-latest
+    # outputs: xác định các kết quả (outputs) của quy trình. Cụ thể, nó là một danh sách các biến môi trường mà quy trình sẽ xuất ra và có thể sử dụng
+    # trong các bước sau.
+    outputs:
+      # DEPLOYMENT_MATRIX: Tên của một biến môi trường. Biến này đại diện cho một dữ liệu cụ thể, có thể là một đối tượng, một chuỗi JSON, hoặc bất kỳ kiểu dữ liệu nào mà bạn muốn truyền cho các bước sau trong quy trình.
+      # Biến DEPLOYMENT_MATRIX nằm trong steps có id là export-deployment-matrix có name là Export deployment matrix
+      DEPLOYMENT_MATRIX: ${{ steps.export-deployment-matrix.outputs.DEPLOYMENT_MATRIX }}
     steps:
     # Sao chép mã nguồn từ kho lưu trữ hiện tại vào máy chủ nơi công việc đang chạy
     # (Đảm bảo rằng mã nguồn mới nhất từ kho lưu trữ GitHub được sử dụng trong công việc.)
@@ -63,7 +70,7 @@ jobs:
       run: tar -czf "${GITHUB_SHA}".tar.gz --exclude=*.git --exclude=node_modules --exclude=tests *
 
     # Tên này sẽ được hiển thị trong bảng điều khiển GitHub Actions. (Mô tả step này có nhiệm vụ gì)
-    # Mỗi khi workflows này chạy thành công nó sẽ tạo ra 1 Artifacts trong mục Actions (Trên thanh menu của Github => Tab Actions)
+    # Mỗi khi workflows này chạy thành công nó sẽ tạo ra 1 Artifact trong mục Artifact trong mục Actions (Trên thanh menu của Github => Tab Actions)
     - name: Store artifact for distribution
       # Hành động này là một hành động GitHub Actions. Nhiệm vụ của nó là tải lên một artifact lên GitHub để lưu trữ.
       uses: actions/upload-artifact@v3
@@ -75,3 +82,58 @@ jobs:
         # đó là giá trị mã hash (checksum) của commit cuối cùng trong kho lưu trữ GitHub của bạn, và thêm phần mở rộng tệp
         name: app-build
         path: ${{ github.sha }}.tar.gz
+
+    # Tên này sẽ được hiển thị trong bảng điều khiển GitHub Actions. (Mô tả step này có nhiệm vụ gì)
+    - name: Export deployment matrix
+      id: export-deployment-matrix
+      # run: | là một biểu thức shell, chứa các lệnh mà bạn muốn thực hiện trên máy chủ nơi công việc đang chạy
+      # delimiter="$(openssl rand -hex 8)": tạo ra một chuỗi ngẫu nhiên 8 ký tự dưới dạng số hexadecimal (hex) và gán nó vào biến delimiter.
+      # Chuỗi này sẽ được sử dụng làm dấu phân cách giữa các máy chủ trong ma trận triển khai.
+      # JSON="$(cat ./deployment-config.json)": đọc nội dung từ tệp JSON có đường dẫn ./deployment-config.json và gán nó vào biến JSON.
+      # Tệp này chứa danh sách các máy chủ cần được triển khai.
+      # echo "DEPLOYMENT_MATRIX<<${delimiter}" >> "${GITHUB_OUTPUT}":
+      # Dòng này viết một dòng bắt đầu của biểu đồ triển khai (deployment matrix) vào biến môi trường GITHUB_OUTPUT.
+      # Dòng này bắt đầu bằng "DEPLOYMENT_MATRIX" và sử dụng ${delimiter} để ngăn cách dữ liệu bên trong biểu đồ.
+      # echo "$JSON" >> "${GITHUB_OUTPUT}"
+      # Dòng này viết nội dung của biểu đồ triển khai (trong biến JSON) vào biến môi trường GITHUB_OUTPUT. Điều này đưa dữ liệu từ tệp JSON vào biểu đồ triển khai.
+      # echo "${delimiter}" >> "${GITHUB_OUTPUT}"
+      # Dòng này viết dòng kết thúc của biểu đồ triển khai (deployment matrix) vào biến môi trường GITHUB_OUTPUT. Dòng này sử dụng ${delimiter} để kết thúc biểu đồ.
+      run: |
+          delimiter="$(openssl rand -hex 8)"
+          JSON="$(cat ./deployment-config.json)"
+          echo "DEPLOYMENT_MATRIX<<${delimiter}" >> "${GITHUB_OUTPUT}"
+          echo "$JSON" >> "${GITHUB_OUTPUT}"
+          echo "${delimiter}" >> "${GITHUB_OUTPUT}"
+
+  # Công việc thứ hai
+  prepare-release-on-servers:
+    name: "${{ matrix.server.name }}: Prepare release"
+    runs-on: ubuntu-latest
+    # needs: create-deployment-artifacts => Chỉ khi nào job có name là create-deployment-artifacts hoàn thành thì job này (có name là prepare-release-on-servers) mới được thực thi
+    # job này (có name là prepare-release-on-servers) phụ thuộc vào job có name là create-deployment-artifacts
+    needs: create-deployment-artifacts
+    strategy:
+      matrix:
+        # Đây là phần cấu hình ma trận triển khai. Nó sử dụng giá trị từ đầu ra DEPLOYMENT_MATRIX của công việc create-deployment-artifacts
+        # để xác định danh sách máy chủ (server) và các thuộc tính của chúng. Công việc này sẽ được thực hiện cho mỗi máy chủ trong ma trận.
+        server: ${{ fromJson(needs.create-deployment-artifacts.outputs.DEPLOYMENT_MATRIX) }}
+    steps:
+      # Hành động này là một hành động GitHub Actions. Nhiệm vụ của nó là tải xuống tệp artifact có tên app-build.
+      # Đây là tệp triển khai đã được tạo ra trong công việc trước (create-deployment-artifacts).
+      - uses: actions/download-artifact@v3
+        # Chứa các đối số (arguments) được truyền cho hành động
+        with:
+          name: app-build
+
+      - name: Upload
+        # scp-action để tải lên tệp triển khai lên máy chủ từ xa.
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ matrix.server.ip }}
+          username: ${{ matrix.server.username }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ matrix.server.port }}
+          source: ${{ github.sha }}.tar.gz
+          target: ${{ matrix.server.path }}/artifacts
+
+
