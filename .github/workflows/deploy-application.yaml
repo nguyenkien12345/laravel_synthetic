@@ -135,6 +135,5 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ matrix.server.port }}
           source: ${{ github.sha }}.tar.gz
-          target: ${{ matrix.server.path }}/artifacts // /var/www/html/artifacts
-
+          target: ${{ matrix.server.path }}/artifacts
 
