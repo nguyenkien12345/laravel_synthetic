@@ -39,7 +39,7 @@ jobs:
       # --prefer-dist là tùy chọn để cài đặt các gói Composer từ các bản phát hành phân phối.
       # (Sử dụng gói phụ thuộc dưới dạng phiên bản đã được biên dịch (dist) sẵn thay vì tải mã nguồn (source) và biên dịch lại từ mã nguồn.)
       # run: là một biểu thức shell, chứa các lệnh mà bạn muốn thực hiện trên máy chủ nơi công việc đang chạy
-      run: composer install --no-dev --no-interaction --prefer-dist
+      run: composer install --no-dev --no-interaction --prefer-dist --ignore-platform-reqs
 
     # Tên này sẽ được hiển thị trong bảng điều khiển GitHub Actions. (Mô tả step này có nhiệm vụ gì)
     - name: Create deployment artifact
