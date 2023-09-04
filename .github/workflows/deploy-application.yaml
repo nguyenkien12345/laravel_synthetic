@@ -1,0 +1,59 @@
+name: Deploy Application
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  create-deployment-artifacts:
+    name: Create deployment artifacts
+    runs-on: ubuntu-latest
+    steps:
+    # Sao chép mã nguồn từ kho lưu trữ hiện tại vào máy chủ nơi công việc đang chạy
+    # (Đảm bảo rằng mã nguồn mới nhất từ kho lưu trữ GitHub được sử dụng trong công việc.)
+    - uses: actions/checkout@v3
+
+    # Tên này sẽ được hiển thị trong bảng điều khiển GitHub Actions. (Mô tả step này có nhiệm vụ gì)
+    - name: Compile CSS and Javascript
+      # run: | là một biểu thức shell, chứa các lệnh mà bạn muốn thực hiện trên máy chủ nơi công việc đang chạy
+      run: |
+        npm install
+        npm run prod
+
+    # Tên này sẽ được hiển thị trong bảng điều khiển GitHub Actions. (Mô tả step này có nhiệm vụ gì)
+    - name: Configure PHP 8.0
+      # Hành động này là một hành động GitHub Actions do shivammathur tạo ra. Cài đặt và cấu hình một phiên bản PHP cụ thể trên nhiều nền tảng
+      uses: shivammathur/setup-php@master
+      # Chứa các đối số (arguments) được truyền cho hành động
+      with:
+        # Môi trường PHP sẽ được thiết lập với phiên bản 8.0.
+        php-version: 8.0
+        # Danh sách các phần mở rộng PHP mà bạn muốn cài đặt (Các phần mở rộng này là các tính năng bổ sung của PHP)
+        extensions: mbstring, ctype, fileinfo, openssl, PDO, bcmath, json, tokenizer, xml
+
+    # Tên này sẽ được hiển thị trong bảng điều khiển GitHub Actions. (Mô tả step này có nhiệm vụ gì)
+    - name: Composer install
+      # composer install là lệnh để cài đặt các phụ thuộc của một ứng dụng Composer.
+      # --no-dev là tùy chọn để không cài đặt các phụ thuộc dành cho môi trường phát triển.
+      # --no-interaction là tùy chọn để không yêu cầu người dùng tương tác.
+      # --prefer-dist là tùy chọn để cài đặt các gói Composer từ các bản phát hành phân phối.
+      # (Sử dụng gói phụ thuộc dưới dạng phiên bản đã được biên dịch (dist) sẵn thay vì tải mã nguồn (source) và biên dịch lại từ mã nguồn.)
+      # run: là một biểu thức shell, chứa các lệnh mà bạn muốn thực hiện trên máy chủ nơi công việc đang chạy
+      run: composer install --no-dev --no-interaction --prefer-dist
+
+    # Tên này sẽ được hiển thị trong bảng điều khiển GitHub Actions. (Mô tả step này có nhiệm vụ gì)
+    - name: Create deployment artifact
+      # tar -czf app.tar.gz: Để tạo một tệp nén có định dạng tar.gz.
+      # Cụ thể:
+      # tar: Là tiện ích để quản lý tệp và thư mục trong Unix/Linux.
+      # -czf: Đây là các cờ hoặc tùy chọn cho lệnh tar.
+      # -c: Tạo một tệp mới.
+      # -z: Nén tệp bằng gzip.
+      # -f: Xác định tên của tệp đầu ra (trong trường hợp này, là app.tar.gz).
+      # --exclude=*.git --exclude=node_modules --exclude=tests *: Đây là các tùy chọn được sử dụng để chỉ định những thứ nào sẽ không được bao gồm trong tệp nén app.tar.gz. Cụ thể:
+      # --exclude=*.git: Loại bỏ tất cả các tệp và thư mục có tên kết thúc bằng .git
+      # --exclude=node_modules: Loại bỏ thư mục node_modules.
+      # --exclude=tests: Loại bỏ thư mục tests (hoặc các tệp có tên là tests).
+      # *: Cuối cùng, dấu * được sử dụng để chỉ định rằng tất cả các tệp và thư mục trong thư mục hiện tại (ngoại trừ những gì đã được loại bỏ) sẽ được bao gồm trong tệp nén app.tar.gz.
+      # run: là một biểu thức shell, chứa các lệnh mà bạn muốn thực hiện trên máy chủ nơi công việc đang chạy
+      run: tar -czf app.tar.gz --exclude=*.git --exclude=node_modules --exclude=tests *
