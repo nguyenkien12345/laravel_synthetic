@@ -1,12 +1,12 @@
 [
     {
-      "name": "server",
+      "name": "server-1",
       "ip": "178.128.213.62",
       "username": "root",
       "password": "kienyeuThuy123!lfc",
       "port": "22",
       "beforeHooks": "",
       "afterHooks": "",
-      "path": "var/www/html"
+      "path": "var/ww/html"
     }
-  ]
+]
