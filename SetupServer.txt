@@ -13,4 +13,3 @@ vd: 123.123.123.62
 2) Gõ: vi /etc/nginx/sites-available/digitalocean
 Thay đổi root /var/www/html; thành  root /var/www/html/current/public; (current chính là commit của dự án laravel, public chứ source code html, css, js)
 3) Gõ: service nginx restart => service nginx status => nginx -t
-4)
