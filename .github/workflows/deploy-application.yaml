@@ -128,8 +128,6 @@ jobs:
       - name: Upload
         # scp-action để tải lên tệp triển khai lên máy chủ từ xa. (Chính là con máy chủ ta đã setup trên digital oceans)
         uses: appleboy/scp-action@master
-        env:
-          APP_PORT: 8000
         with:
           host: ${{ matrix.server.ip }}
           username: ${{ matrix.server.username }}
